@@ -1,0 +1,304 @@
+id: https://genesis-qcd-datasheets.example.org/schemas/research-object
+name: genesis-research-object
+title: Genesis Research Object base model
+version: 0.1.0
+description: >-
+  Initial design (v0.1) of a common abstraction shared by every citable thing
+  in the Genesis "research object graph": Datasets, Analyses, Calibrations,
+  Data Artifacts, Software, Workflows, and Publications. Nothing about a
+  specific object kind lives on the abstract ResearchObject class -- only
+  what identity, description, lifecycle, and relationships mean for any of
+  them. Concrete object kinds are modeled as subclasses (is_a) that inherit
+  this shape and add only their differentiating slots.
+  See graph/README.md for the design discussion this schema formalizes.
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  genesis: https://genesis-qcd-datasheets.example.org/schemas/research-object/
+
+default_prefix: genesis
+default_range: string
+
+imports:
+  - linkml:types
+
+# ============================================================
+# CLASSES
+# ============================================================
+classes:
+
+  ResearchObject:
+    abstract: true
+    description: >-
+      Common shape shared by every research object. Every concrete subclass
+      inherits these slots and is valid wherever a ResearchObject is
+      expected -- this is what makes the generic uses/used_by/produces/
+      produced_by edges work across mixed object types without a bespoke
+      relationship predicate per pair of types.
+    slots:
+      - id
+      - object_type
+      - name
+      - description
+      - version
+      - status
+      - created_date
+      - updated_date
+      - change_log
+      - owner
+      - uses
+      - used_by
+      - produces
+      - produced_by
+
+  ResearchObjectRef:
+    description: >-
+      A pointer to another research object, not a copy of its metadata.
+      This is the only place another object's identity is allowed to
+      appear inside a record -- keep it minimal on purpose, so nothing
+      duplicates the metadata that already lives on the target's own
+      record.
+    attributes:
+      identifier:
+        range: Identifier
+        required: true
+        description: Type + value of the target research object's own id.
+      role:
+        range: string
+        description: >-
+          Optional free-text annotation on this edge (e.g. "primary input"
+          vs. "background sample"). Deliberately not a controlled
+          vocabulary -- the edge's direction (uses/used_by/produces/
+          produced_by) and the target's object_type already carry most of
+          the needed semantics; this is only for the residual nuance that
+          those two don't capture.
+
+  Identifier:
+    description: A typed, persistent identifier.
+    attributes:
+      type:
+        range: string
+        required: true
+        description: doi | ark | handle | url | local | other | unregistered
+      value:
+        range: string
+        required: true
+
+  ChangeLogEntry:
+    description: One entry in a research object's change log. Never overwritten; append-only.
+    attributes:
+      change_date:
+        range: date
+        required: true
+      summary:
+        range: string
+        required: true
+
+  # --- Concrete research object types ----------------------------
+
+  Dataset:
+    is_a: ResearchObject
+    description: >-
+      What was recorded or produced, where it resides, and how to cite it.
+      Does not describe transformations performed on it -- see Analysis.
+    slots:
+      - collision_system
+      - energy
+      - magnetic_field_config
+      - access
+      - dataset_scale
+      - sensitivity
+      - governed_use
+      - ai_usability
+
+  Analysis:
+    is_a: ResearchObject
+    description: >-
+      A transformation of one or more input research objects into outputs.
+      Focused work by a small number of participants, often one. Not
+      metadata attached to a dataset -- has its own identity and lifecycle.
+    slots:
+      - objective
+      - method_summary
+      - published_as
+
+  Calibration:
+    is_a: ResearchObject
+    description: >-
+      A frozen, already-resolved mapping from raw electronic readings to
+      meaningful physical values or a uniform scale (e.g. calorimeter
+      tower gains, timing offsets, channel-status/dead-channel maps).
+      Deliberately carries no interval-of-validity field: this object is a
+      serialized snapshot, not a live conditions-database query -- which
+      run range it applies to is resolved by the Analysis that extracted
+      it, not declared here.
+    slots:
+      - detector_subsystem
+      - calibration_type
+
+  DataArtifact:
+    is_a: ResearchObject
+    description: >-
+      An analysis-specific supporting object that is not itself a physical
+      calibration (e.g. a good-run list, an event-selection list). Usually
+      near-final once created; revisions are uncommon.
+    slots:
+      - artifact_type
+
+  Software:
+    is_a: ResearchObject
+    description: Citable code used to produce, process, or analyze other research objects.
+    slots:
+      - repository_url
+      - language
+
+  Workflow:
+    is_a: ResearchObject
+    description: >-
+      A citable, executable pipeline/configuration that orchestrates
+      software, calibrations, and datasets into an analysis run.
+
+  Publication:
+    is_a: ResearchObject
+    description: A citable written result (paper, note, thesis) reporting on one or more analyses.
+    slots:
+      - venue
+      - doi
+
+# ============================================================
+# SLOTS
+# ============================================================
+slots:
+
+  # --- Core ResearchObject slots -----------------------------------
+  id:
+    identifier: true
+    range: Identifier
+    required: true
+    description: Persistent identifier for this research object itself.
+
+  object_type:
+    range: string
+    required: true
+    description: >-
+      Discriminator naming the concrete research object type (Dataset,
+      Analysis, Calibration, DataArtifact, Software, Workflow,
+      Publication, ...). Redundant with the class itself while records
+      stay typed objects, but load-bearing once records are flattened
+      into a flat catalog/graph index, where the class information is
+      otherwise lost.
+
+  name:
+    range: string
+    required: true
+
+  description:
+    range: string
+
+  version:
+    range: string
+    description: Semantic versioning (MAJOR.MINOR.PATCH) for this object.
+
+  status:
+    range: string
+    description: >-
+      Lifecycle state. Controlled vocabulary is subclass-specific (e.g.
+      Draft|Under_Review|Approved|Published|Deprecated for a Dataset;
+      Planned|In_Progress|Complete|Published|Superseded|Archived for an
+      Analysis).
+
+  created_date:
+    range: date
+
+  updated_date:
+    range: date
+
+  change_log:
+    multivalued: true
+    range: ChangeLogEntry
+    description: Running history of meaningful changes. Append-only.
+
+  owner:
+    range: string
+    description: Person or small team who authored/maintains this object.
+
+  uses:
+    multivalued: true
+    range: ResearchObjectRef
+    description: >-
+      Forward, authored dependency edges to any other research object(s)
+      this one depends on, regardless of their type.
+
+  used_by:
+    multivalued: true
+    range: ResearchObjectRef
+    description: >-
+      Reverse edges. Authored once, at the moment the consuming object is
+      registered -- propagated as a side effect of that registration, not
+      derived by a live crawler across repositories.
+
+  produces:
+    multivalued: true
+    range: ResearchObjectRef
+    description: Forward, authored edges to research object(s) this one generates.
+
+  produced_by:
+    multivalued: false
+    range: ResearchObjectRef
+    description: >-
+      Singular by design, unlike the three slots above: an object is
+      normally the output of exactly one process, even though it may be
+      consumed by many and depend on many inputs.
+
+  # --- Dataset-specific -----------------------------------------
+  collision_system:
+    range: string
+  energy:
+    range: string
+  magnetic_field_config:
+    range: string
+  access:
+    range: string
+  dataset_scale:
+    range: string
+  sensitivity:
+    range: string
+  governed_use:
+    range: string
+  ai_usability:
+    range: string
+
+  # --- Analysis-specific -----------------------------------------
+  objective:
+    range: string
+    description: The scientific question or goal this analysis addresses.
+  method_summary:
+    range: string
+  published_as:
+    multivalued: true
+    range: ResearchObjectRef
+
+  # --- Calibration-specific -----------------------------------------
+  detector_subsystem:
+    range: string
+    description: e.g. "EMCal / PbSc", "Drift Chamber"
+  calibration_type:
+    range: string
+    description: gain | pedestal | timing | channel_status | alignment | other
+
+  # --- DataArtifact-specific -----------------------------------------
+  artifact_type:
+    range: string
+    description: e.g. run_selection, event_selection
+
+  # --- Software-specific -----------------------------------------
+  repository_url:
+    range: string
+  language:
+    range: string
+
+  # --- Publication-specific -----------------------------------------
+  venue:
+    range: string
+  doi:
+    range: string

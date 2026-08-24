@@ -1,0 +1,329 @@
+# ============================================================
+# RO_mockup_star_oo200rff.yml
+# ============================================================
+# A complete, worked instance graph conforming to RO.yml (the Genesis
+# Research Object base model). Scenario: the upstream chain that turns raw
+# STAR detector output into a reconstructed dataset, for the O+O
+# sqrt(sNN)=200 GeV, Reversed Full Field run period already documented in
+# genesis_datacard_star_ds001_oo200_rff.md -- the final ReconstructedDataset
+# node below (id DS-001) IS that same dataset, so this file shows the graph
+# of research objects that sit upstream of, and explain the provenance of,
+# that existing data card.
+#
+# Covers, per the request:
+#   - raw data                                  -> RawData
+#   - a calibration process (a case of Analysis) -> CalibrationAnalysis
+#     ...which produces...                       -> Calibration
+#   - generation of a "dead channels" object     -> DeadChannelAnalysis
+#     ...which produces...                       -> DeadChannelMap
+#   - reconstruction, using the calibrations     -> ReconstructionAnalysis
+#   - a dataset suitable for the final, high-end
+#     analysis outside of this graph             -> ReconstructedDataset
+#
+# Two deliberate modeling choices, flagged rather than silently assumed:
+#
+#   1. DeadChannelMap is modeled as a Calibration (calibration_type:
+#      channel_status), not a DataArtifact -- per the design discussion
+#      that settled this (dead/hot-channel maps are conceptually a
+#      calibration, confirmed against Ji, Zhongling's PHENIX PhD thesis,
+#      Sec. 4.3 "EMCal Warn Map" / Sec. 4.4.1 "DC QA and Dead Map"). If
+#      "data artifact" in the request was meant literally as the
+#      DataArtifact class rather than the English phrase, this is a one-line
+#      change (object_type + class) -- see the note on that record below.
+#
+#   2. ReconstructedDataset.used_by is deliberately left empty. The
+#      "final, high-end analysis" is explicitly out of scope for this
+#      graph per the request, so no forward reference to it is fabricated
+#      here -- only real, declared research objects get referenced.
+#
+# A Software object (the STAR offline framework) is also included, shared
+# by both Analysis steps, to demonstrate the point of the graph design:
+# one object, described once, reused by reference rather than duplicated.
+# It's one object beyond the five bullet points, added deliberately for
+# that reason, not scope creep.
+#
+# Container note: the top-level `research_objects:` list below is just a
+# convenience wrapper for bundling this demo in one file -- it is not part
+# of the RO.yml schema itself. Each list entry, individually, is what
+# validates against one of RO.yml's concrete classes (see validation notes
+# at the end of this file).
+# ============================================================
+
+research_objects:
+
+  # ---------------------------------------------------------------
+  # 1. Raw data (root node -- produced by the DAQ system, outside this graph)
+  # ---------------------------------------------------------------
+  - id: {type: local, value: "RAW-OO200RFF-2021"}
+    object_type: Dataset
+    name: "Raw DAQ data, O+O sqrt(sNN)=200 GeV, RHIC Run 21, RFF"
+    description: >-
+      Level 1 raw detector output (.daq files) from the STAR TPC and other
+      subsystems for the O+O 200 GeV Reversed Full Field minimum-bias run
+      period, prior to any calibration or reconstruction.
+    version: "1.0"
+    status: "Archived"
+    created_date: "2021-05-16"
+    updated_date: "2021-05-16"
+    change_log:
+      - change_date: "2021-05-16"
+        summary: "Initial registration of the raw DAQ stream on HPSS tape."
+    owner: "STAR Data Acquisition / SDCC Digital Repositories"
+    collision_system: "O+O"
+    energy: "200 GeV"
+    magnetic_field_config: "Reversed Full Field (RFF)"
+    access: "HPSS tape archive at SDCF, BNL"
+    dataset_scale: "not_applicable in this mockup -- tracked in the STAR FileCatalog, not modeled here"
+    sensitivity: "Public"
+    uses: []
+    used_by:
+      - identifier: {type: local, value: "ANA-TPC-CAL-OO200RFF-2021"}
+        role: "input to TPC gain/pedestal calibration"
+      - identifier: {type: local, value: "ANA-TPC-DEADCHAN-OO200RFF-2021"}
+        role: "input to dead/hot channel identification"
+      - identifier: {type: local, value: "ANA-RECO-OO200RFF-2021-SL21C-P23IC"}
+        role: "input to reconstruction"
+    produces: []
+    produced_by: null   # root node: produced by the detector/DAQ system, outside this graph
+
+  # ---------------------------------------------------------------
+  # 2. Calibration process -- "a case of analysis"
+  # ---------------------------------------------------------------
+  - id: {type: local, value: "ANA-TPC-CAL-OO200RFF-2021"}
+    object_type: Analysis
+    name: "TPC gain and pedestal calibration derivation, O+O 200 GeV RFF"
+    description: >-
+      Derives per-pad gain and pedestal correction constants for the TPC
+      from dedicated pedestal/pulser calibration runs within the O+O 200
+      GeV RFF run period.
+    version: "1.0"
+    status: "Complete"
+    created_date: "2021-05-20"
+    updated_date: "2021-05-22"
+    change_log:
+      - change_date: "2021-05-22"
+        summary: "Calibration constants finalized and frozen as v1."
+    owner: "TPC Calibration Team (STAR)"
+    objective: "Produce validated TPC gain/pedestal correction constants for reconstruction of the O+O 200 GeV RFF dataset."
+    method_summary: >-
+      Standard STAR TPC pedestal/gain calibration procedure applied to
+      dedicated calibration-trigger runs; results cross-checked against
+      the prior run period's calibration set.
+    published_as: []
+    uses:
+      - identifier: {type: local, value: "RAW-OO200RFF-2021"}
+        role: "calibration-trigger runs within the raw stream"
+      - identifier: {type: url, value: "https://github.com/star-bnl/star-sw"}
+        role: "calibration fitting code"
+    used_by: []
+    produces:
+      - identifier: {type: local, value: "CAL-TPC-GAINPED-OO200RFF-2021-v1"}
+    produced_by: null   # originating process, not itself produced by another research object
+
+  # ---------------------------------------------------------------
+  # 3. Calibration (the product of the process above)
+  # ---------------------------------------------------------------
+  - id: {type: local, value: "CAL-TPC-GAINPED-OO200RFF-2021-v1"}
+    object_type: Calibration
+    name: "TPC gain & pedestal calibration constants, O+O 200 GeV RFF, v1"
+    description: >-
+      Frozen, serialized extract of per-pad TPC gain and pedestal
+      correction constants resolved for the O+O 200 GeV RFF run period.
+      No live conditions-database dependency -- which run range this
+      applies to was resolved by ANA-TPC-CAL-OO200RFF-2021, not declared
+      as a property of this record (see RO.yml's note on why Calibration
+      carries no interval_of_validity field).
+    version: "1.0"
+    status: "Complete"
+    created_date: "2021-05-22"
+    updated_date: "2021-05-22"
+    change_log:
+      - change_date: "2021-05-22"
+        summary: "v1 frozen and registered."
+    owner: "TPC Calibration Team (STAR)"
+    detector_subsystem: "TPC"
+    calibration_type: "gain_pedestal"   # compound value; STAR's own DS-001 provenance text bundles "space-charge, gain-length corrections" the same way
+    uses: []
+    used_by:
+      - identifier: {type: local, value: "ANA-TPC-DEADCHAN-OO200RFF-2021"}
+        role: "pads failing calibration feed into the dead-channel determination"
+      - identifier: {type: local, value: "ANA-RECO-OO200RFF-2021-SL21C-P23IC"}
+        role: "applied during reconstruction"
+    produces: []
+    produced_by:
+      identifier: {type: local, value: "ANA-TPC-CAL-OO200RFF-2021"}
+
+  # ---------------------------------------------------------------
+  # 4. Dead-channel analysis -- "generation of a data artifact for the dead channels"
+  # ---------------------------------------------------------------
+  - id: {type: local, value: "ANA-TPC-DEADCHAN-OO200RFF-2021"}
+    object_type: Analysis
+    name: "TPC dead/hot channel identification, O+O 200 GeV RFF"
+    description: >-
+      Identifies TPC pads that failed gain/pedestal calibration or show
+      anomalous hit rates in dedicated QA runs, producing a channel-status
+      map for use in reconstruction.
+    version: "1.0"
+    status: "Complete"
+    created_date: "2021-05-23"
+    updated_date: "2021-05-23"
+    change_log:
+      - change_date: "2021-05-23"
+        summary: "Channel-status map v1 finalized."
+    owner: "TPC Calibration Team (STAR)"
+    objective: "Flag TPC pads that should be excluded from track reconstruction due to failed calibration or anomalous response."
+    method_summary: >-
+      Pads failing gain/pedestal convergence in CAL-TPC-GAINPED-OO200RFF-2021-v1,
+      plus pads with hit-rate distributions more than 10x RMS from the
+      sector average in dedicated QA runs, are flagged and combined into
+      one channel-status map -- the same procedure described in Ji,
+      Zhongling's PHENIX PhD thesis (2021), Sec. 4.3 ("EMCal Warn Map"),
+      applied here to the TPC instead of the EMCal.
+    published_as: []
+    uses:
+      - identifier: {type: local, value: "RAW-OO200RFF-2021"}
+        role: "QA runs used for hit-rate distributions"
+      - identifier: {type: local, value: "CAL-TPC-GAINPED-OO200RFF-2021-v1"}
+        role: "pads failing calibration are flagged dead"
+    used_by: []
+    produces:
+      - identifier: {type: local, value: "CAL-TPC-DEADMAP-OO200RFF-2021-v1"}
+    produced_by: null
+
+  # ---------------------------------------------------------------
+  # 5. Dead-channel map (the product of the process above)
+  #
+  # NOTE on classification: modeled here as a Calibration with
+  # calibration_type: channel_status, per the design discussion this repo
+  # already settled (see graph/README.md). If "data artifact" in the
+  # request meant the literal DataArtifact class rather than the general
+  # English phrase, change object_type to DataArtifact and set
+  # artifact_type: channel_status instead -- every uses/used_by/
+  # produced_by edge below stays valid either way, since both classes
+  # inherit identically from ResearchObject.
+  # ---------------------------------------------------------------
+  - id: {type: local, value: "CAL-TPC-DEADMAP-OO200RFF-2021-v1"}
+    object_type: Calibration
+    name: "TPC dead/hot channel map, O+O 200 GeV RFF, v1"
+    description: >-
+      Frozen list of TPC pads excluded from reconstruction for this run
+      period. Historically distributed as a standalone file rather than a
+      live database record, consistent with common practice for this kind
+      of map.
+    version: "1.0"
+    status: "Complete"
+    created_date: "2021-05-23"
+    updated_date: "2021-05-23"
+    change_log:
+      - change_date: "2021-05-23"
+        summary: "v1 frozen and registered."
+    owner: "TPC Calibration Team (STAR)"
+    detector_subsystem: "TPC"
+    calibration_type: "channel_status"
+    uses: []
+    used_by:
+      - identifier: {type: local, value: "ANA-RECO-OO200RFF-2021-SL21C-P23IC"}
+        role: "excluded pads applied during reconstruction"
+    produces: []
+    produced_by:
+      identifier: {type: local, value: "ANA-TPC-DEADCHAN-OO200RFF-2021"}
+
+  # ---------------------------------------------------------------
+  # 6. Reconstruction -- "using the calibrations"
+  # ---------------------------------------------------------------
+  - id: {type: local, value: "ANA-RECO-OO200RFF-2021-SL21C-P23IC"}
+    object_type: Analysis
+    name: "STAR offline reconstruction, O+O 200 GeV RFF (SL21c / P23ic)"
+    description: >-
+      Reconstructs Level 2 MuDst events from Level 1 raw DAQ data for the
+      O+O 200 GeV RFF run period, applying the TPC gain/pedestal
+      calibration and excluding pads flagged by the dead/hot channel map.
+    version: "1.0"
+    status: "Complete"
+    created_date: "2021-06-01"
+    updated_date: "2021-07-15"
+    change_log:
+      - change_date: "2021-06-01"
+        summary: "Initial production pass P23ib (later superseded)."
+      - change_date: "2021-07-15"
+        summary: "Reprocessed as the authoritative pass P23ic after a calibration correction; P23ib must not be used."
+    owner: "STAR Production Team"
+    objective: "Produce the authoritative Level 2 reconstructed dataset (MuDst) for the O+O 200 GeV RFF run period."
+    method_summary: >-
+      STAR offline reconstruction chain (library SL21c, production pass
+      P23ic), applying the TPC gain/pedestal calibration and the TPC
+      dead/hot channel map; no event-level physics selection is applied
+      at this stage -- that is left to downstream analyses.
+    published_as: []
+    uses:
+      - identifier: {type: local, value: "RAW-OO200RFF-2021"}
+        role: "input raw stream"
+      - identifier: {type: local, value: "CAL-TPC-GAINPED-OO200RFF-2021-v1"}
+        role: "applied gain/pedestal correction"
+      - identifier: {type: local, value: "CAL-TPC-DEADMAP-OO200RFF-2021-v1"}
+        role: "applied channel exclusion"
+      - identifier: {type: url, value: "https://github.com/star-bnl/star-sw"}
+        role: "reconstruction library SL21c"
+    used_by: []
+    produces:
+      - identifier: {type: local, value: "DS-001"}
+    produced_by: null
+
+  # ---------------------------------------------------------------
+  # 7. Software -- shared by both Analysis steps above; not one of the
+  #    five requested items, added deliberately to show reuse-by-reference
+  # ---------------------------------------------------------------
+  - id: {type: url, value: "https://github.com/star-bnl/star-sw"}
+    object_type: Software
+    name: "STAR offline software framework (StRoot / StMuDSTMaker)"
+    description: "STAR collaboration reconstruction and calibration framework."
+    version: "SL21c"
+    status: "Active"
+    owner: "STAR Collaboration"
+    repository_url: "https://github.com/star-bnl/star-sw"
+    language: "C++"
+    uses: []
+    used_by:
+      - identifier: {type: local, value: "ANA-TPC-CAL-OO200RFF-2021"}
+      - identifier: {type: local, value: "ANA-RECO-OO200RFF-2021-SL21C-P23IC"}
+    produces: []
+    produced_by: null
+
+  # ---------------------------------------------------------------
+  # 8. Final reconstructed dataset -- "suitable for the final, high-end
+  #    analysis outside of this graph". This IS DS-001 from
+  #    genesis_datacard_star_ds001_oo200_rff.md.
+  # ---------------------------------------------------------------
+  - id: {type: local, value: "DS-001"}
+    object_type: Dataset
+    name: "O+O Collisions at sqrt(sNN)=200 GeV, Minimum Bias, Reversed Full Field (production_OO_200GeV_2021) -- Level 2 MuDst"
+    description: >-
+      Level 2 reconstructed MuDst dataset, produced from RAW-OO200RFF-2021
+      by ANA-RECO-OO200RFF-2021-SL21C-P23IC, using the TPC gain/pedestal
+      Calibration and TPC dead/hot channel map above. Corresponds to
+      genesis_datacard_star_ds001_oo200_rff.md. Suitable as input to a
+      downstream physics analysis (e.g. the O+O jet-quenching search) --
+      that "final, high-end analysis" is deliberately NOT modeled as part
+      of this graph, per the request, so used_by below is empty rather
+      than pointing at a fabricated node.
+    version: "1.0"
+    status: "Approved"
+    created_date: "2021-07-15"
+    updated_date: "2021-07-15"
+    change_log:
+      - change_date: "2021-07-15"
+        summary: "Registered as the output of the authoritative P23ic reconstruction pass."
+    owner: "STAR Collaboration"
+    collision_system: "O+O"
+    energy: "200 GeV"
+    magnetic_field_config: "Reversed Full Field (RFF)"
+    access: "HPSS tape archive at SDCF, BNL"
+    dataset_scale: "17,851 files, 27.7 TB"
+    sensitivity: "Public"
+    governed_use: "STAR-collaboration-internal access; see genesis_datacard_star_ds001_oo200_rff.md for full governance metadata."
+    ai_usability: "See genesis_datacard_star_ds001_oo200_rff.md."
+    uses: []
+    used_by: []   # deliberately empty -- see description above
+    produces: []
+    produced_by:
+      identifier: {type: local, value: "ANA-RECO-OO200RFF-2021-SL21C-P23IC"}
