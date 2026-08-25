@@ -7,12 +7,12 @@ being developed as a tool to advance the Genesis QCD data project.
 One of the goals is to leverage existing standards and tools, such
 as [LinkML](https://linkml.io/).
 
-The folder _ro_ contains sample YML data intended for experimentation.
+The folder **ro** contains sample YAML data intended for experimentation.
 
 ## Tools
 
 One of the advantages of frameworks like _LinkML_ is that they are
-supported by corresponding software echosystems. In case of _LinkML_,
+supported by corresponding software ecosystems. In case of _LinkML_,
 one such toolkit is the Python **linkml** package. The package offers
 useful functionality, such as:
 * programmatic inheritance in the OO sense,
