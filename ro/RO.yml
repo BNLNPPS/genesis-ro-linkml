@@ -165,6 +165,28 @@ classes:
       - venue
       - doi
 
+  # --- Container / root class ----------------------------------
+  ResearchObjectCollection:
+    tree_root: true
+    description: >-
+      Convenience wrapper for bundling a heterogeneous set of research
+      objects in one file (e.g. a worked instance graph spanning
+      Datasets, Analyses, Calibrations, Software, ...). Not part of the
+      core research-object model itself -- exists only so validation
+      tooling has a single root class to infer, matching the
+      `research_objects:` list convention already used by instance
+      files such as RO_mockup_star_oo200rff.yml.
+    attributes:
+      research_objects:
+        multivalued: true
+        inlined_as_list: true
+        range: ResearchObject
+        description: >-
+          Heterogeneous list of research objects. Each item is
+          validated against its own concrete subclass, resolved via
+          the object_type type designator, not against the abstract
+          ResearchObject shape.
+
 # ============================================================
 # SLOTS
 # ============================================================
@@ -180,13 +202,17 @@ slots:
   object_type:
     range: string
     required: true
+    designates_type: true
     description: >-
       Discriminator naming the concrete research object type (Dataset,
       Analysis, Calibration, DataArtifact, Software, Workflow,
       Publication, ...). Redundant with the class itself while records
       stay typed objects, but load-bearing once records are flattened
       into a flat catalog/graph index, where the class information is
-      otherwise lost.
+      otherwise lost. Marked as a type designator so that heterogeneous
+      collections (e.g. ResearchObjectCollection.research_objects) are
+      validated against each item's actual subclass rather than the
+      abstract ResearchObject.
 
   name:
     range: string
