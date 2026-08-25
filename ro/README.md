@@ -7,6 +7,22 @@ human-readable pages. The behavior is different when using packages
 such as LinkML in the Python context, where this will be run against
 the _locally installed content_.
 
+## Identifiers
+
+The _RO.yml_ contains the description, this is for reference:
+```yaml
+  Identifier:
+    description: A typed, persistent identifier.
+    attributes:
+      type:
+        range: string
+        required: true
+        description: doi | ark | handle | url | local | other | unregistered
+      value:
+        range: string
+        required: true
+```
+
 ## Types.yaml
 
 ```yaml
