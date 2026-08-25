@@ -57,6 +57,15 @@ Options:
 - **DOT**: render locally with Graphviz, e.g.
   `dot -Tsvg graph.dot -o graph.svg` or `dot -Tpng graph.dot -o graph.png`.
 
+Other examples:
+```bash
+dot -Tsvg graph.dot -o graph.svg
+dot -Tpng graph.dot -o graph.png
+dot -Tpdf graph.dot -o graph.pdf
+```
+
+
+
 ### How it works
 
 Each research object becomes one node, colored by its `object_type`
