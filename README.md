@@ -28,8 +28,7 @@ linkml-validate -s ro/RO.yml ro/RO_mockup_star_oo200rff.yml
 ```
 
 
+## Misc
 
-
-
-
-
+The _misc_ folder keep supporing material, not typically used
+as a context.
