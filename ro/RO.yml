@@ -72,6 +72,26 @@ classes:
           produced_by) and the target's object_type already carry most of
           the needed semantics; this is only for the residual nuance that
           those two don't capture.
+      confidence:
+        range: string
+        description: >-
+          Epistemic strength of this specific edge, informally: recorded
+          (a machine record exists -- database, log, git) | documented
+          (stated in prose in a source document) | inferred (deduced while
+          building the graph; not confirmed by anyone). Optional -- absence
+          means confidence was not assessed, not that the edge is certain.
+      evidence:
+        range: string
+        description: >-
+          Pointer to what this edge's assertion is based on (e.g. a
+          document section, log entry, or dataset query) -- what a reviewer
+          would check to confirm or refute it. Optional.
+      status:
+        range: string
+        description: >-
+          Optional flag for an edge whose correctness is not yet settled,
+          e.g. disputed | hypothesis | unverified | unresolved. Absence
+          means the edge is not flagged, not that it has been verified.
 
   Identifier:
     description: A typed, persistent identifier.

@@ -48,6 +48,17 @@
 # validates against one of RO.yml's concrete classes (see validation notes
 # at the end of this file).
 # ============================================================
+#
+# Provenance-audit pass (see ResearchObjectRef.confidence/evidence/status
+# in RO.yml): every uses/used_by/produces/produced_by edge below is now
+# checked against genesis_datacard_star_ds001_oo200_rff.md. Two findings:
+#   - The raw -> reconstruction -> DS-001 backbone, and the fact that TPC
+#     calibration was performed and applied at reconstruction, are
+#     documented in the datacard.
+#   - The entire dead/hot-channel sub-chain (items 4-5 above) has NO
+#     basis in the datacard -- it is modeled purely by analogy to a
+#     different experiment's thesis (see note 1 above) and is tagged
+#     confidence: inferred, status: hypothesis throughout.
 
 research_objects:
 
@@ -79,10 +90,31 @@ research_objects:
     used_by:
       - identifier: {type: local, value: "ANA-TPC-CAL-OO200RFF-2021"}
         role: "input to TPC gain/pedestal calibration"
+        confidence: "inferred"
+        evidence: >-
+          DS-001 states only that TPC calibration was performed and
+          applied during reconstruction; modeling the derivation as a
+          discrete upstream Analysis with its own dedicated inputs is
+          this mockup's own elaboration, not stated in DS-001.
       - identifier: {type: local, value: "ANA-TPC-DEADCHAN-OO200RFF-2021"}
         role: "input to dead/hot channel identification"
+        confidence: "inferred"
+        status: "hypothesis"
+        evidence: >-
+          No dead/hot channel identification step, map, or terminology
+          ("dead channel", "hot channel", "channel status", "RMS") appears
+          anywhere in genesis_datacard_star_ds001_oo200_rff.md. This
+          object and every edge touching it are modeled by analogy to
+          Ji, Zhongling's PHENIX PhD thesis Sec. 4.3/4.4.1 -- a different
+          experiment's detector -- not confirmed against this dataset.
       - identifier: {type: local, value: "ANA-RECO-OO200RFF-2021-SL21C-P23IC"}
         role: "input to reconstruction"
+        confidence: "documented"
+        evidence: >-
+          DS-001 processing_steps: raw .daq files processed through the
+          STAR offline reconstruction chain using library SL21c,
+          production pass P23ic, producing the Level 2 reconstructed
+          MuDst dataset.
     produces: []
     produced_by: null   # root node: produced by the detector/DAQ system, outside this graph
 
@@ -113,11 +145,32 @@ research_objects:
     uses:
       - identifier: {type: local, value: "RAW-OO200RFF-2021"}
         role: "calibration-trigger runs within the raw stream"
+        confidence: "inferred"
+        evidence: >-
+          DS-001 states only that TPC calibration was performed and
+          applied during reconstruction; modeling the derivation as a
+          discrete upstream Analysis with its own dedicated inputs is
+          this mockup's own elaboration, not stated in DS-001.
       - identifier: {type: url, value: "https://github.com/star-bnl/star-sw"}
         role: "calibration fitting code"
+        confidence: "inferred"
+        evidence: >-
+          The STAR offline framework (SL21c) is documented as used for
+          reconstruction; its use for calibration derivation specifically
+          is assumed by convention, not separately stated in DS-001.
     used_by: []
     produces:
       - identifier: {type: local, value: "CAL-TPC-GAINPED-OO200RFF-2021-v1"}
+        confidence: "documented"
+        evidence: >-
+          DS-001 validation_methods: TPC calibration (space-charge,
+          gain-length corrections) performed separately for RFF and FF
+          field polarities and applied during SL21c reconstruction.
+        status: >-
+          Terminology note: DS-001 names this "space-charge, gain-length
+          corrections"; this graph labels the object gain/pedestal (see
+          the calibration_type comment on CAL-TPC-GAINPED-OO200RFF-2021-v1
+          below).
     produced_by: null   # originating process, not itself produced by another research object
 
   # ---------------------------------------------------------------
@@ -147,11 +200,40 @@ research_objects:
     used_by:
       - identifier: {type: local, value: "ANA-TPC-DEADCHAN-OO200RFF-2021"}
         role: "pads failing calibration feed into the dead-channel determination"
+        confidence: "inferred"
+        status: "hypothesis"
+        evidence: >-
+          No dead/hot channel identification step, map, or terminology
+          ("dead channel", "hot channel", "channel status", "RMS") appears
+          anywhere in genesis_datacard_star_ds001_oo200_rff.md. This
+          object and every edge touching it are modeled by analogy to
+          Ji, Zhongling's PHENIX PhD thesis Sec. 4.3/4.4.1 -- a different
+          experiment's detector -- not confirmed against this dataset.
       - identifier: {type: local, value: "ANA-RECO-OO200RFF-2021-SL21C-P23IC"}
         role: "applied during reconstruction"
+        confidence: "documented"
+        evidence: >-
+          DS-001 validation_methods: TPC calibration (space-charge,
+          gain-length corrections) performed separately for RFF and FF
+          field polarities and applied during SL21c reconstruction.
+        status: >-
+          Terminology note: DS-001 names this "space-charge, gain-length
+          corrections"; this graph labels the object gain/pedestal (see
+          the calibration_type comment on CAL-TPC-GAINPED-OO200RFF-2021-v1
+          below).
     produces: []
     produced_by:
       identifier: {type: local, value: "ANA-TPC-CAL-OO200RFF-2021"}
+      confidence: "documented"
+      evidence: >-
+        DS-001 validation_methods: TPC calibration (space-charge,
+        gain-length corrections) performed separately for RFF and FF
+        field polarities and applied during SL21c reconstruction.
+      status: >-
+        Terminology note: DS-001 names this "space-charge, gain-length
+        corrections"; this graph labels the object gain/pedestal (see
+        the calibration_type comment on CAL-TPC-GAINPED-OO200RFF-2021-v1
+        below).
 
   # ---------------------------------------------------------------
   # 4. Dead-channel analysis -- "generation of a data artifact for the dead channels"
@@ -183,11 +265,38 @@ research_objects:
     uses:
       - identifier: {type: local, value: "RAW-OO200RFF-2021"}
         role: "QA runs used for hit-rate distributions"
+        confidence: "inferred"
+        status: "hypothesis"
+        evidence: >-
+          No dead/hot channel identification step, map, or terminology
+          ("dead channel", "hot channel", "channel status", "RMS") appears
+          anywhere in genesis_datacard_star_ds001_oo200_rff.md. This
+          object and every edge touching it are modeled by analogy to
+          Ji, Zhongling's PHENIX PhD thesis Sec. 4.3/4.4.1 -- a different
+          experiment's detector -- not confirmed against this dataset.
       - identifier: {type: local, value: "CAL-TPC-GAINPED-OO200RFF-2021-v1"}
         role: "pads failing calibration are flagged dead"
+        confidence: "inferred"
+        status: "hypothesis"
+        evidence: >-
+          No dead/hot channel identification step, map, or terminology
+          ("dead channel", "hot channel", "channel status", "RMS") appears
+          anywhere in genesis_datacard_star_ds001_oo200_rff.md. This
+          object and every edge touching it are modeled by analogy to
+          Ji, Zhongling's PHENIX PhD thesis Sec. 4.3/4.4.1 -- a different
+          experiment's detector -- not confirmed against this dataset.
     used_by: []
     produces:
       - identifier: {type: local, value: "CAL-TPC-DEADMAP-OO200RFF-2021-v1"}
+        confidence: "inferred"
+        status: "hypothesis"
+        evidence: >-
+          No dead/hot channel identification step, map, or terminology
+          ("dead channel", "hot channel", "channel status", "RMS") appears
+          anywhere in genesis_datacard_star_ds001_oo200_rff.md. This
+          object and every edge touching it are modeled by analogy to
+          Ji, Zhongling's PHENIX PhD thesis Sec. 4.3/4.4.1 -- a different
+          experiment's detector -- not confirmed against this dataset.
     produced_by: null
 
   # ---------------------------------------------------------------
@@ -224,9 +333,27 @@ research_objects:
     used_by:
       - identifier: {type: local, value: "ANA-RECO-OO200RFF-2021-SL21C-P23IC"}
         role: "excluded pads applied during reconstruction"
+        confidence: "inferred"
+        status: "hypothesis"
+        evidence: >-
+          No dead/hot channel identification step, map, or terminology
+          ("dead channel", "hot channel", "channel status", "RMS") appears
+          anywhere in genesis_datacard_star_ds001_oo200_rff.md. This
+          object and every edge touching it are modeled by analogy to
+          Ji, Zhongling's PHENIX PhD thesis Sec. 4.3/4.4.1 -- a different
+          experiment's detector -- not confirmed against this dataset.
     produces: []
     produced_by:
       identifier: {type: local, value: "ANA-TPC-DEADCHAN-OO200RFF-2021"}
+      confidence: "inferred"
+      status: "hypothesis"
+      evidence: >-
+        No dead/hot channel identification step, map, or terminology
+        ("dead channel", "hot channel", "channel status", "RMS") appears
+        anywhere in genesis_datacard_star_ds001_oo200_rff.md. This
+        object and every edge touching it are modeled by analogy to
+        Ji, Zhongling's PHENIX PhD thesis Sec. 4.3/4.4.1 -- a different
+        experiment's detector -- not confirmed against this dataset.
 
   # ---------------------------------------------------------------
   # 6. Reconstruction -- "using the calibrations"
@@ -258,15 +385,52 @@ research_objects:
     uses:
       - identifier: {type: local, value: "RAW-OO200RFF-2021"}
         role: "input raw stream"
+        confidence: "documented"
+        evidence: >-
+          DS-001 processing_steps: raw .daq files processed through the
+          STAR offline reconstruction chain using library SL21c,
+          production pass P23ic, producing the Level 2 reconstructed
+          MuDst dataset.
       - identifier: {type: local, value: "CAL-TPC-GAINPED-OO200RFF-2021-v1"}
         role: "applied gain/pedestal correction"
+        confidence: "documented"
+        evidence: >-
+          DS-001 validation_methods: TPC calibration (space-charge,
+          gain-length corrections) performed separately for RFF and FF
+          field polarities and applied during SL21c reconstruction.
+        status: >-
+          Terminology note: DS-001 names this "space-charge, gain-length
+          corrections"; this graph labels the object gain/pedestal (see
+          the calibration_type comment on CAL-TPC-GAINPED-OO200RFF-2021-v1
+          below).
       - identifier: {type: local, value: "CAL-TPC-DEADMAP-OO200RFF-2021-v1"}
         role: "applied channel exclusion"
+        confidence: "inferred"
+        status: "hypothesis"
+        evidence: >-
+          No dead/hot channel identification step, map, or terminology
+          ("dead channel", "hot channel", "channel status", "RMS") appears
+          anywhere in genesis_datacard_star_ds001_oo200_rff.md. This
+          object and every edge touching it are modeled by analogy to
+          Ji, Zhongling's PHENIX PhD thesis Sec. 4.3/4.4.1 -- a different
+          experiment's detector -- not confirmed against this dataset.
       - identifier: {type: url, value: "https://github.com/star-bnl/star-sw"}
         role: "reconstruction library SL21c"
+        confidence: "documented"
+        evidence: >-
+          DS-001 processing_steps: raw .daq files processed through the
+          STAR offline reconstruction chain using library SL21c,
+          production pass P23ic, producing the Level 2 reconstructed
+          MuDst dataset.
     used_by: []
     produces:
       - identifier: {type: local, value: "DS-001"}
+        confidence: "documented"
+        evidence: >-
+          DS-001 processing_steps: raw .daq files processed through the
+          STAR offline reconstruction chain using library SL21c,
+          production pass P23ic, producing the Level 2 reconstructed
+          MuDst dataset.
     produced_by: null
 
   # ---------------------------------------------------------------
@@ -285,7 +449,18 @@ research_objects:
     uses: []
     used_by:
       - identifier: {type: local, value: "ANA-TPC-CAL-OO200RFF-2021"}
+        confidence: "inferred"
+        evidence: >-
+          The STAR offline framework (SL21c) is documented as used for
+          reconstruction; its use for calibration derivation specifically
+          is assumed by convention, not separately stated in DS-001.
       - identifier: {type: local, value: "ANA-RECO-OO200RFF-2021-SL21C-P23IC"}
+        confidence: "documented"
+        evidence: >-
+          DS-001 processing_steps: raw .daq files processed through the
+          STAR offline reconstruction chain using library SL21c,
+          production pass P23ic, producing the Level 2 reconstructed
+          MuDst dataset.
     produces: []
     produced_by: null
 
@@ -327,3 +502,9 @@ research_objects:
     produces: []
     produced_by:
       identifier: {type: local, value: "ANA-RECO-OO200RFF-2021-SL21C-P23IC"}
+      confidence: "documented"
+      evidence: >-
+        DS-001 processing_steps: raw .daq files processed through the
+        STAR offline reconstruction chain using library SL21c,
+        production pass P23ic, producing the Level 2 reconstructed
+        MuDst dataset.
