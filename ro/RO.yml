@@ -141,6 +141,7 @@ classes:
       - objective
       - method_summary
       - published_as
+      - has_part
 
   Calibration:
     is_a: ResearchObject
@@ -323,6 +324,25 @@ slots:
   published_as:
     multivalued: true
     range: ResearchObjectRef
+  has_part:
+    multivalued: true
+    range: ResearchObjectRef
+    description: >-
+      Membership, not dependency: the citable manifest of research objects
+      this Analysis (as a study) declares as its official parts -- e.g.
+      its own sub-Analyses/passes, and the inputs/outputs that belong in
+      its record -- pinned to exact version_ids. This is a different kind
+      of fact from uses/used_by/produces/produced_by: a member need not be
+      directly used or produced by this Analysis itself (a sub-Analysis's
+      own uses/produced_by carry that computational detail); has_part only
+      says "this belongs in my declared scope." Reuses the
+      ResearchObjectRef shape as a generic annotated pointer -- not
+      because membership and dependency are the same relation, they are
+      not -- so both kinds of edges can carry the same
+      confidence/evidence/status provenance. Deliberately stored in one
+      direction only, on the containing Analysis: no matching is_part_of
+      slot exists on the member, so there is exactly one place this fact
+      is asserted and no stored inverse to drift out of sync.
 
   # --- Calibration-specific -----------------------------------------
   detector_subsystem:

@@ -59,8 +59,102 @@
 #     basis in the datacard -- it is modeled purely by analogy to a
 #     different experiment's thesis (see note 1 above) and is tagged
 #     confidence: inferred, status: hypothesis throughout.
+#
+# has_part example (aggregate added 2026-09-30): PROD-OO200RFF-2021 below
+# borrows the container pattern from Eric's ResearchObjectGraphs
+# oo200_jetquench_objects.yaml top-level `analysis` node -- an aggregate
+# with a has_part manifest and no uses/produced_by of its own ("the
+# lockfile", his words). Like his, this has_part list is curated, not the
+# full transitive closure: it names the campaign's headline steps and
+# outputs, the same way his excludes the raw dataset and shared software
+# his executions draw on. RAW-OO200RFF-2021 and the shared STAR software
+# framework are deliberately NOT listed as parts here for the same reason
+# -- they are inputs the campaign's steps use, not things the campaign
+# itself comprises.
 
 research_objects:
+
+  # ---------------------------------------------------------------
+  # 0. Production campaign (the aggregate) -- entry point demonstrating
+  #    has_part. See the header note above on what is borrowed from
+  #    Eric's oo200_jetquench_objects.yaml aggregate and why.
+  # ---------------------------------------------------------------
+  - id: {type: local, value: "PROD-OO200RFF-2021"}
+    object_type: Analysis
+    name: "STAR offline production campaign, O+O 200 GeV RFF (2021)"
+    description: >-
+      The campaign that turns RAW-OO200RFF-2021 into the released,
+      calibrated, channel-clean Level 2 dataset DS-001: TPC gain/pedestal
+      calibration derivation, TPC dead/hot channel identification, and
+      reconstruction (SL21c, pass P23ic). A pure aggregate -- it uses and
+      produces nothing itself; has_part below names its constituent steps
+      and their outputs. Compare Eric's ResearchObjectGraphs
+      oo200_jetquench_objects.yaml top-level `analysis` node, which plays
+      the identical role for the downstream jet-quenching study.
+    version: "1.0"
+    status: "Complete"
+    created_date: "2021-05-16"
+    updated_date: "2021-07-15"
+    change_log:
+      - change_date: "2021-07-15"
+        summary: "Campaign closed out with the registration of the authoritative P23ic reconstruction pass (DS-001)."
+    owner: "STAR Production Team"
+    objective: >-
+      Produce the authoritative, calibrated, channel-clean Level 2
+      reconstructed dataset (DS-001) for the O+O 200 GeV RFF run period.
+    method_summary: >-
+      Derive TPC gain/pedestal calibration and a TPC dead/hot channel map
+      from the raw stream, then reconstruct with both applied. See the
+      individual Analysis records below for method detail per step; this
+      record summarizes the campaign, not any one step's procedure.
+    published_as: []
+    uses: []
+    used_by: []
+    produces: []
+    produced_by: null   # aggregate: not itself the output of a process
+    has_part:
+      - identifier: {type: local, value: "ANA-TPC-CAL-OO200RFF-2021"}
+        role: "calibration derivation step"
+        confidence: "documented"
+        evidence: >-
+          DS-001 validation_methods documents that TPC calibration was
+          performed and applied at reconstruction; this campaign models
+          that derivation as its own step (see the note on that object
+          below for what is documented vs. this mockup's own elaboration).
+      - identifier: {type: local, value: "CAL-TPC-GAINPED-OO200RFF-2021-v1"}
+        role: "calibration output"
+        confidence: "documented"
+        evidence: >-
+          DS-001 validation_methods -- TPC calibration constants applied
+          during SL21c reconstruction.
+      - identifier: {type: local, value: "ANA-TPC-DEADCHAN-OO200RFF-2021"}
+        role: "dead/hot channel identification step"
+        confidence: "inferred"
+        status: "hypothesis"
+        evidence: >-
+          Not documented in DS-001 (see the note on this object below);
+          included here for completeness of the campaign as this mockup
+          models it, flagged the same as its own edges elsewhere in this
+          file rather than laundered into an unqualified part.
+      - identifier: {type: local, value: "CAL-TPC-DEADMAP-OO200RFF-2021-v1"}
+        role: "dead/hot channel output"
+        confidence: "inferred"
+        status: "hypothesis"
+        evidence: >-
+          Not documented in DS-001; see the note on
+          ANA-TPC-DEADCHAN-OO200RFF-2021.
+      - identifier: {type: local, value: "ANA-RECO-OO200RFF-2021-SL21C-P23IC"}
+        role: "reconstruction step"
+        confidence: "documented"
+        evidence: >-
+          DS-001 processing_steps -- SL21c reconstruction, production
+          pass P23ic.
+      - identifier: {type: local, value: "DS-001"}
+        role: "released dataset"
+        confidence: "documented"
+        evidence: >-
+          DS-001 is this campaign's own subject in
+          genesis_datacard_star_ds001_oo200_rff.md.
 
   # ---------------------------------------------------------------
   # 1. Raw data (root node -- produced by the DAQ system, outside this graph)
